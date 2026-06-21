@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { loginAction } from "./actions";
 import { useI18n } from "@/lib/i18n/context";
@@ -42,6 +43,12 @@ export default function LoginForm() {
       >
         {isPending ? dict.login.signingIn : dict.login.signIn}
       </button>
+      <p className="text-center text-sm text-gray-500">
+        {dict.login.registerPrompt}{" "}
+        <Link href="/register" className="text-blue-600 hover:underline">
+          {dict.login.registerLink}
+        </Link>
+      </p>
     </form>
   );
 }

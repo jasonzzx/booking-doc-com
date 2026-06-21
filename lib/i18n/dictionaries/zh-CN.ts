@@ -43,6 +43,18 @@ const zhCN = {
     passwordLabel: "密码",
     signingIn: "登录中…",
     signIn: "登录",
+    registerPrompt: "还不是医生用户？",
+    registerLink: "创建账号",
+  },
+  register: {
+    heading: "创建医生账号",
+    subtitle: "注册后需经管理员审核通过才会展示并可登录。",
+    specialtyLabel: "专科",
+    specialtyPlaceholder: "例如：皮肤科",
+    submitting: "创建中…",
+    submit: "创建账号",
+    successMessage: "您的账号已创建。需等待管理员审核通过后才能登录。",
+    backToLogin: "返回登录",
   },
   booking: {
     stepDoctor: "1. 选择医生",

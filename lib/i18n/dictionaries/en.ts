@@ -41,6 +41,19 @@ const en = {
     passwordLabel: "Password",
     signingIn: "Signing in…",
     signIn: "Sign in",
+    registerPrompt: "New doctor?",
+    registerLink: "Create an account",
+  },
+  register: {
+    heading: "Create your doctor account",
+    subtitle: "Sign up to get listed once an admin approves your account.",
+    specialtyLabel: "Specialty",
+    specialtyPlaceholder: "e.g. Dermatology",
+    submitting: "Creating account…",
+    submit: "Create account",
+    successMessage:
+      "Your account has been created. An admin needs to approve it before you can sign in.",
+    backToLogin: "Back to sign in",
   },
   booking: {
     stepDoctor: "1. Choose a doctor",
