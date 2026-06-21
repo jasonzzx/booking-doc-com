@@ -14,8 +14,7 @@ import {
   startOfWeek,
   subMonths,
 } from "date-fns";
-
-const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+import { useDateFnsLocale, useI18n } from "@/lib/i18n/context";
 
 export default function MonthCalendar({
   monthCursor,
@@ -34,12 +33,17 @@ export default function MonthCalendar({
   loading: boolean;
   disabled: boolean;
 }) {
+  const { dict } = useI18n();
+  const dateFnsLocale = useDateFnsLocale();
   const monthStart = startOfMonth(monthCursor);
   const monthEnd = endOfMonth(monthCursor);
   const gridStart = startOfWeek(monthStart);
   const gridEnd = endOfWeek(monthEnd);
   const days = eachDayOfInterval({ start: gridStart, end: gridEnd });
   const today = startOfDay(new Date());
+  const weekdayLabels = eachDayOfInterval({ start: gridStart, end: endOfWeek(gridStart) }).map((d) =>
+    format(d, "EEEEEE", { locale: dateFnsLocale }),
+  );
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
@@ -48,24 +52,26 @@ export default function MonthCalendar({
           type="button"
           onClick={() => onMonthChange(subMonths(monthStart, 1))}
           className="rounded-md px-2 py-1 text-gray-500 hover:bg-gray-100"
-          aria-label="Previous month"
+          aria-label={dict.booking.calendarPrevMonth}
         >
           ‹
         </button>
-        <div className="font-semibold text-gray-900">{format(monthStart, "MMMM yyyy")}</div>
+        <div className="font-semibold text-gray-900">
+          {format(monthStart, "MMMM yyyy", { locale: dateFnsLocale })}
+        </div>
         <button
           type="button"
           onClick={() => onMonthChange(addMonths(monthStart, 1))}
           className="rounded-md px-2 py-1 text-gray-500 hover:bg-gray-100"
-          aria-label="Next month"
+          aria-label={dict.booking.calendarNextMonth}
         >
           ›
         </button>
       </div>
 
       <div className="grid grid-cols-7 gap-1 text-center text-xs font-medium text-gray-400">
-        {WEEKDAY_LABELS.map((d) => (
-          <div key={d} className="py-1">
+        {weekdayLabels.map((d, i) => (
+          <div key={i} className="py-1">
             {d}
           </div>
         ))}
@@ -100,12 +106,12 @@ export default function MonthCalendar({
         })}
       </div>
 
-      {loading && <p className="mt-3 text-center text-sm text-gray-400">Loading availability…</p>}
+      {loading && <p className="mt-3 text-center text-sm text-gray-400">{dict.booking.calendarLoading}</p>}
       {disabled && !loading && (
-        <p className="mt-3 text-center text-sm text-gray-400">Pick a doctor and service to see availability.</p>
+        <p className="mt-3 text-center text-sm text-gray-400">{dict.booking.calendarPickDoctorService}</p>
       )}
       {!disabled && !loading && availableDates.size === 0 && (
-        <p className="mt-3 text-center text-sm text-gray-400">No availability this month.</p>
+        <p className="mt-3 text-center text-sm text-gray-400">{dict.booking.calendarNoAvailability}</p>
       )}
     </div>
   );

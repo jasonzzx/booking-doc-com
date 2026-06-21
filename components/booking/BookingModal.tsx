@@ -3,6 +3,8 @@
 import { useState, useTransition } from "react";
 import { createBooking } from "@/lib/actions/booking";
 import { formatClinicDateTime } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/context";
+import { interpolate } from "@/lib/i18n/interpolate";
 
 interface Slot {
   start: string;
@@ -26,6 +28,7 @@ export default function BookingModal({
   onClose: () => void;
   onBooked: () => void;
 }) {
+  const { dict, locale } = useI18n();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -65,12 +68,16 @@ export default function BookingModal({
       >
         {token ? (
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">You&apos;re booked!</h2>
+            <h2 className="text-lg font-semibold text-gray-900">{dict.booking.modalBookedHeading}</h2>
             <p className="mt-2 text-sm text-gray-600">
-              {serviceName} with {doctorName} on {formatClinicDateTime(new Date(slot.start))}.
+              {interpolate(dict.booking.modalBookedWith, {
+                service: serviceName,
+                doctor: doctorName,
+                datetime: formatClinicDateTime(new Date(slot.start), locale),
+              })}
             </p>
             <p className="mt-3 text-sm text-gray-600">
-              Save this link to cancel or reschedule later:{" "}
+              {dict.booking.modalSaveLink}{" "}
               <a className="break-all text-blue-600 underline" href={`/manage/${token}`}>
                 {window.location.origin}/manage/{token}
               </a>
@@ -80,22 +87,22 @@ export default function BookingModal({
               onClick={onClose}
               className="mt-5 w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
             >
-              Done
+              {dict.booking.modalDone}
             </button>
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
-            <h2 className="text-lg font-semibold text-gray-900">Confirm your appointment</h2>
+            <h2 className="text-lg font-semibold text-gray-900">{dict.booking.modalConfirmHeading}</h2>
             <p className="mt-1 text-sm text-gray-600">
-              {serviceName} with {doctorName}
+              {interpolate(dict.booking.modalConfirmWith, { service: serviceName, doctor: doctorName })}
               <br />
-              {formatClinicDateTime(new Date(slot.start))}
+              {formatClinicDateTime(new Date(slot.start), locale)}
             </p>
 
             <div className="mt-4 space-y-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700" htmlFor="patientName">
-                  Name
+                  {dict.booking.modalNameLabel}
                 </label>
                 <input
                   id="patientName"
@@ -107,7 +114,7 @@ export default function BookingModal({
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700" htmlFor="patientPhone">
-                  Phone
+                  {dict.booking.modalPhoneLabel}
                 </label>
                 <input
                   id="patientPhone"
@@ -119,7 +126,7 @@ export default function BookingModal({
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700" htmlFor="patientEmail">
-                  Email (optional)
+                  {dict.booking.modalEmailLabel}
                 </label>
                 <input
                   id="patientEmail"
@@ -139,14 +146,14 @@ export default function BookingModal({
                 onClick={onClose}
                 className="flex-1 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
               >
-                Cancel
+                {dict.booking.modalCancel}
               </button>
               <button
                 type="submit"
                 disabled={isPending}
                 className="flex-1 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
               >
-                {isPending ? "Booking…" : "Confirm booking"}
+                {isPending ? dict.booking.modalBooking : dict.booking.modalConfirmBooking}
               </button>
             </div>
           </form>

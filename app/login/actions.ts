@@ -2,6 +2,7 @@
 
 import { AuthError } from "next-auth";
 import { signIn } from "@/lib/auth";
+import { getDictionary } from "@/lib/i18n/get-locale";
 
 export async function loginAction(
   _prevState: { error?: string } | undefined,
@@ -16,7 +17,8 @@ export async function loginAction(
     return {};
   } catch (error) {
     if (error instanceof AuthError) {
-      return { error: "Invalid email or password." };
+      const { dict } = await getDictionary();
+      return { error: dict.errors.invalidCredentials };
     }
     throw error;
   }

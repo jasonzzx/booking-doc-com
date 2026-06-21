@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { startOfMonth } from "date-fns";
 import { getMonthAvailability, type DoctorSummary, type SlotsByDate } from "@/lib/actions/booking";
+import { useI18n } from "@/lib/i18n/context";
 import DoctorPicker from "./DoctorPicker";
 import ServicePicker from "./ServicePicker";
 import MonthCalendar from "./MonthCalendar";
@@ -15,6 +16,7 @@ interface Slot {
 }
 
 export default function BookingFlow({ doctors }: { doctors: DoctorSummary[] }) {
+  const { dict } = useI18n();
   const [doctorId, setDoctorId] = useState<string | null>(null);
   const [serviceId, setServiceId] = useState<string | null>(null);
   const [monthCursor, setMonthCursor] = useState(() => startOfMonth(new Date()));
@@ -53,7 +55,7 @@ export default function BookingFlow({ doctors }: { doctors: DoctorSummary[] }) {
     <div className="space-y-6">
       <section>
         <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">
-          1. Choose a doctor
+          {dict.booking.stepDoctor}
         </h2>
         <DoctorPicker
           doctors={doctors}
@@ -68,7 +70,7 @@ export default function BookingFlow({ doctors }: { doctors: DoctorSummary[] }) {
       {doctor && (
         <section>
           <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">
-            2. Choose a service
+            {dict.booking.stepService}
           </h2>
           <ServicePicker services={doctor.services} selectedId={serviceId} onSelect={setServiceId} />
         </section>
@@ -78,7 +80,7 @@ export default function BookingFlow({ doctors }: { doctors: DoctorSummary[] }) {
         <section className="grid gap-6 md:grid-cols-2">
           <div>
             <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">
-              3. Pick a day
+              {dict.booking.stepDay}
             </h2>
             <MonthCalendar
               monthCursor={monthCursor}
@@ -92,12 +94,12 @@ export default function BookingFlow({ doctors }: { doctors: DoctorSummary[] }) {
           </div>
           <div>
             <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">
-              4. Pick a time
+              {dict.booking.stepTime}
             </h2>
             {selectedDate ? (
               <SlotList slots={availability[selectedDate] ?? []} onSelectSlot={setSelectedSlot} />
             ) : (
-              <p className="text-sm text-gray-500">Select an available day on the calendar.</p>
+              <p className="text-sm text-gray-500">{dict.booking.selectDayPrompt}</p>
             )}
           </div>
         </section>

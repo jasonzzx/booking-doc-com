@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/lib/i18n/context";
+
 interface Service {
   id: string;
   name: string;
@@ -16,6 +18,7 @@ export default function ServicePicker({
   selectedId: string | null;
   onSelect: (id: string) => void;
 }) {
+  const { dict } = useI18n();
   return (
     <div className="flex flex-wrap gap-2">
       {services.map((s) => {
@@ -32,7 +35,7 @@ export default function ServicePicker({
                 : "border-gray-200 bg-white text-gray-700 hover:border-gray-300",
             ].join(" ")}
           >
-            {s.name} &middot; {s.durationMinutes} min
+            {s.name} &middot; {s.durationMinutes} {dict.booking.serviceMin}
           </button>
         );
       })}

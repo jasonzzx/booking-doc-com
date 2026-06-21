@@ -7,6 +7,8 @@ import { appointments, doctors, services } from "@/lib/db/schema";
 import { getAvailableSlotsForRange, isSlotStillAvailable } from "@/lib/availability";
 import { sendBookingConfirmationEmail } from "@/lib/email";
 import { isOverlapViolation, isValidEmail, monthDateRange } from "@/lib/server-utils";
+import { getDictionary } from "@/lib/i18n/get-locale";
+import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 
 export interface DoctorSummary {
   id: string;
@@ -71,34 +73,37 @@ export async function getMonthAvailability(
   return result;
 }
 
-const bookingInputSchema = z.object({
-  doctorId: z.string().min(1),
-  serviceId: z.string().min(1),
-  start: z.string().min(1),
-  patientName: z.string().trim().min(1, "Name is required").max(200),
-  patientPhone: z.string().trim().min(1, "Phone is required").max(50),
-  patientEmail: z.string().trim().max(320).optional(),
-});
+function bookingInputSchema(errors: Dictionary["errors"]) {
+  return z.object({
+    doctorId: z.string().min(1),
+    serviceId: z.string().min(1),
+    start: z.string().min(1),
+    patientName: z.string().trim().min(1, errors.nameRequired).max(200),
+    patientPhone: z.string().trim().min(1, errors.phoneRequired).max(50),
+    patientEmail: z.string().trim().max(320).optional(),
+  });
+}
 
-export type CreateBookingInput = z.infer<typeof bookingInputSchema>;
+export type CreateBookingInput = z.infer<ReturnType<typeof bookingInputSchema>>;
 export type CreateBookingResult =
   | { success: true; cancellationToken: string }
   | { success: false; error: string };
 
 export async function createBooking(input: CreateBookingInput): Promise<CreateBookingResult> {
-  const parsed = bookingInputSchema.safeParse(input);
+  const { dict } = await getDictionary();
+  const parsed = bookingInputSchema(dict.errors).safeParse(input);
   if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0]?.message ?? "Please check the form and try again." };
+    return { success: false, error: parsed.error.issues[0]?.message ?? dict.errors.invalidForm };
   }
   const { doctorId, serviceId, start, patientName, patientPhone } = parsed.data;
   const patientEmail = parsed.data.patientEmail?.trim() || undefined;
   if (patientEmail && !isValidEmail(patientEmail)) {
-    return { success: false, error: "That email address doesn't look valid." };
+    return { success: false, error: dict.errors.invalidEmail };
   }
 
   const startAt = new Date(start);
   if (Number.isNaN(startAt.getTime()) || startAt.getTime() < Date.now()) {
-    return { success: false, error: "That time is no longer available. Please pick another slot." };
+    return { success: false, error: dict.errors.slotNoLongerAvailable };
   }
 
   const db = getDb();
@@ -116,14 +121,14 @@ export async function createBooking(input: CreateBookingInput): Promise<CreateBo
     }),
   ]);
   if (!doctor || !service) {
-    return { success: false, error: "This doctor or service is no longer available." };
+    return { success: false, error: dict.errors.doctorOrServiceUnavailable };
   }
 
   const endAt = new Date(startAt.getTime() + service.durationMinutes * 60_000);
 
   const stillAvailable = await isSlotStillAvailable(doctorId, startAt, endAt);
   if (!stillAvailable) {
-    return { success: false, error: "That time was just booked by someone else. Please pick another slot." };
+    return { success: false, error: dict.errors.slotTaken };
   }
 
   const cancellationToken = crypto.randomUUID();
@@ -143,7 +148,7 @@ export async function createBooking(input: CreateBookingInput): Promise<CreateBo
     });
   } catch (err) {
     if (isOverlapViolation(err)) {
-      return { success: false, error: "That time was just booked by someone else. Please pick another slot." };
+      return { success: false, error: dict.errors.slotTaken };
     }
     throw err;
   }

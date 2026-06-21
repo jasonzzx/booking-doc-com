@@ -7,6 +7,7 @@ import { getAvailableSlotsForRange, isSlotStillAvailable } from "@/lib/availabil
 import { sendCancellationEmail, sendRescheduledEmail } from "@/lib/email";
 import { monthDateRange } from "@/lib/server-utils";
 import { isOverlapViolation } from "@/lib/server-utils";
+import { getDictionary } from "@/lib/i18n/get-locale";
 
 export interface ManagedAppointment {
   id: string;
@@ -44,14 +45,15 @@ export async function getAppointmentByToken(token: string): Promise<ManagedAppoi
 export async function cancelAppointmentByToken(
   token: string,
 ): Promise<{ success: true } | { success: false; error: string }> {
+  const { dict } = await getDictionary();
   const db = getDb();
   const appt = await db.query.appointments.findFirst({
     where: eq(appointments.cancellationToken, token),
     with: { doctor: { with: { user: true } } },
   });
-  if (!appt) return { success: false, error: "Appointment not found." };
+  if (!appt) return { success: false, error: dict.errors.appointmentNotFound };
   if (appt.status === "cancelled") {
-    return { success: false, error: "This appointment is already cancelled." };
+    return { success: false, error: dict.errors.alreadyCancelled };
   }
 
   await db
@@ -96,23 +98,24 @@ export async function rescheduleAppointmentByToken(
   token: string,
   newStartIso: string,
 ): Promise<{ success: true } | { success: false; error: string }> {
+  const { dict } = await getDictionary();
   const db = getDb();
   const appt = await db.query.appointments.findFirst({
     where: eq(appointments.cancellationToken, token),
     with: { doctor: { with: { user: true } } },
   });
-  if (!appt) return { success: false, error: "Appointment not found." };
-  if (appt.status !== "booked") return { success: false, error: "This appointment can't be rescheduled." };
+  if (!appt) return { success: false, error: dict.errors.appointmentNotFound };
+  if (appt.status !== "booked") return { success: false, error: dict.errors.cannotReschedule };
 
   const newStart = new Date(newStartIso);
   if (Number.isNaN(newStart.getTime()) || newStart.getTime() < Date.now()) {
-    return { success: false, error: "Please pick a valid future time." };
+    return { success: false, error: dict.errors.invalidFutureTime };
   }
   const newEnd = new Date(newStart.getTime() + appt.durationMinutes * 60_000);
 
   const stillAvailable = await isSlotStillAvailable(appt.doctorId, newStart, newEnd, appt.id);
   if (!stillAvailable) {
-    return { success: false, error: "That time was just booked by someone else. Please pick another slot." };
+    return { success: false, error: dict.errors.slotTaken };
   }
 
   try {
@@ -122,7 +125,7 @@ export async function rescheduleAppointmentByToken(
       .where(eq(appointments.id, appt.id));
   } catch (err) {
     if (isOverlapViolation(err)) {
-      return { success: false, error: "That time was just booked by someone else. Please pick another slot." };
+      return { success: false, error: dict.errors.slotTaken };
     }
     throw err;
   }

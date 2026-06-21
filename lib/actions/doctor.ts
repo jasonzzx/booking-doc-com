@@ -10,6 +10,7 @@ import { CLINIC_TIMEZONE } from "@/lib/constants";
 import { minutesOfDayInClinicTz } from "@/lib/format";
 import { sendCancellationEmail } from "@/lib/email";
 import { requireDoctor } from "@/lib/actions/guards";
+import { getDictionary } from "@/lib/i18n/get-locale";
 
 // ---------------------------------------------------------------------------
 // Day view (dashboard timeline)
@@ -89,13 +90,14 @@ export async function cancelMyAppointment(
   appointmentId: string,
 ): Promise<{ success: true } | { success: false; error: string }> {
   const { doctorId } = await requireDoctor();
+  const { dict } = await getDictionary();
   const db = getDb();
   const appt = await db.query.appointments.findFirst({
     where: and(eq(appointments.id, appointmentId), eq(appointments.doctorId, doctorId)),
     with: { doctor: { with: { user: true } } },
   });
-  if (!appt) return { success: false, error: "Appointment not found." };
-  if (appt.status === "cancelled") return { success: false, error: "Already cancelled." };
+  if (!appt) return { success: false, error: dict.errors.appointmentNotFound };
+  if (appt.status === "cancelled") return { success: false, error: dict.errors.alreadyCancelledShort };
 
   await db
     .update(appointments)
@@ -150,7 +152,8 @@ export async function createAvailabilityRule(input: {
 }): Promise<{ success: true; rule: AvailabilityRuleDTO } | { success: false; error: string }> {
   const { doctorId } = await requireDoctor();
   if (input.startTime >= input.endTime) {
-    return { success: false, error: "End time must be after start time." };
+    const { dict } = await getDictionary();
+    return { success: false, error: dict.errors.endTimeAfterStart };
   }
   const db = getDb();
   const [row] = await db
@@ -233,10 +236,12 @@ export async function createAvailabilityOverride(input: {
 }): Promise<{ success: true; override: AvailabilityOverrideDTO } | { success: false; error: string }> {
   const { doctorId } = await requireDoctor();
   if (input.type === "open" && (!input.startTime || !input.endTime)) {
-    return { success: false, error: "Start and end time are required for extra availability." };
+    const { dict } = await getDictionary();
+    return { success: false, error: dict.errors.extraHoursTimeRequired };
   }
   if (input.startTime && input.endTime && input.startTime >= input.endTime) {
-    return { success: false, error: "End time must be after start time." };
+    const { dict } = await getDictionary();
+    return { success: false, error: dict.errors.endTimeAfterStart };
   }
   const db = getDb();
   const [row] = await db
@@ -299,9 +304,10 @@ export async function createService(input: {
   description?: string;
 }): Promise<{ success: true; service: ServiceDTO } | { success: false; error: string }> {
   const { doctorId } = await requireDoctor();
-  if (!input.name.trim()) return { success: false, error: "Name is required." };
+  const { dict } = await getDictionary();
+  if (!input.name.trim()) return { success: false, error: dict.errors.nameRequired };
   if (!Number.isFinite(input.durationMinutes) || input.durationMinutes <= 0) {
-    return { success: false, error: "Duration must be a positive number of minutes." };
+    return { success: false, error: dict.errors.durationPositive };
   }
   const db = getDb();
   const [row] = await db
@@ -330,9 +336,10 @@ export async function updateService(
   input: { name: string; durationMinutes: number; description?: string },
 ): Promise<{ success: true } | { success: false; error: string }> {
   const { doctorId } = await requireDoctor();
-  if (!input.name.trim()) return { success: false, error: "Name is required." };
+  const { dict } = await getDictionary();
+  if (!input.name.trim()) return { success: false, error: dict.errors.nameRequired };
   if (!Number.isFinite(input.durationMinutes) || input.durationMinutes <= 0) {
-    return { success: false, error: "Duration must be a positive number of minutes." };
+    return { success: false, error: dict.errors.durationPositive };
   }
   const db = getDb();
   await db

@@ -9,6 +9,7 @@ import {
   type ManagedAppointment,
 } from "@/lib/actions/manage";
 import { formatClinicDateTime } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/context";
 import MonthCalendar from "@/components/booking/MonthCalendar";
 import SlotList from "@/components/booking/SlotList";
 
@@ -21,6 +22,7 @@ export default function ManageAppointment({
   token: string;
   appointment: ManagedAppointment;
 }) {
+  const { dict, locale } = useI18n();
   const [appt, setAppt] = useState(appointment);
   const [mode, setMode] = useState<"view" | "reschedule">("view");
   const [confirmingCancel, setConfirmingCancel] = useState(false);
@@ -54,7 +56,7 @@ export default function ManageAppointment({
     setBusy(false);
     if (result.success) {
       setAppt((a) => ({ ...a, status: "cancelled" }));
-      setMessage("Your appointment has been cancelled.");
+      setMessage(dict.manage.cancelledMessage);
     } else {
       setError(result.error);
     }
@@ -69,7 +71,7 @@ export default function ManageAppointment({
       setAppt((a) => ({ ...a, startAt: slot.start, endAt: slot.end }));
       setMode("view");
       setSelectedDate(null);
-      setMessage("Your appointment has been rescheduled.");
+      setMessage(dict.manage.rescheduledMessage);
     } else {
       setError(result.error);
     }
@@ -77,24 +79,25 @@ export default function ManageAppointment({
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-      <h1 className="text-xl font-bold text-gray-900">Your appointment</h1>
+      <h1 className="text-xl font-bold text-gray-900">{dict.manage.heading}</h1>
 
       <dl className="mt-4 space-y-1 text-sm text-gray-700">
         <div>
-          <dt className="inline font-medium">Patient:</dt> <dd className="inline">{appt.patientName}</dd>
+          <dt className="inline font-medium">{dict.manage.patient}</dt> <dd className="inline">{appt.patientName}</dd>
         </div>
         <div>
-          <dt className="inline font-medium">Doctor:</dt> <dd className="inline">{appt.doctorName}</dd>
+          <dt className="inline font-medium">{dict.manage.doctor}</dt> <dd className="inline">{appt.doctorName}</dd>
         </div>
         <div>
-          <dt className="inline font-medium">Service:</dt> <dd className="inline">{appt.serviceName}</dd>
+          <dt className="inline font-medium">{dict.manage.service}</dt> <dd className="inline">{appt.serviceName}</dd>
         </div>
         <div>
-          <dt className="inline font-medium">When:</dt>{" "}
-          <dd className="inline">{formatClinicDateTime(new Date(appt.startAt))}</dd>
+          <dt className="inline font-medium">{dict.manage.when}</dt>{" "}
+          <dd className="inline">{formatClinicDateTime(new Date(appt.startAt), locale)}</dd>
         </div>
         <div>
-          <dt className="inline font-medium">Status:</dt> <dd className="inline capitalize">{appt.status}</dd>
+          <dt className="inline font-medium">{dict.manage.status}</dt>{" "}
+          <dd className="inline">{appt.status === "booked" ? dict.manage.statusBooked : dict.manage.statusCancelled}</dd>
         </div>
       </dl>
 
@@ -104,10 +107,10 @@ export default function ManageAppointment({
       {error && <p className="mt-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
 
       {appt.status === "cancelled" && (
-        <p className="mt-4 text-sm text-gray-500">This appointment has been cancelled.</p>
+        <p className="mt-4 text-sm text-gray-500">{dict.manage.alreadyCancelled}</p>
       )}
       {appt.status === "booked" && isPast && (
-        <p className="mt-4 text-sm text-gray-500">This appointment time has already passed.</p>
+        <p className="mt-4 text-sm text-gray-500">{dict.manage.alreadyPast}</p>
       )}
 
       {canAct && mode === "view" && (
@@ -117,7 +120,7 @@ export default function ManageAppointment({
             onClick={() => setMode("reschedule")}
             className="flex-1 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
-            Reschedule
+            {dict.manage.reschedule}
           </button>
           {!confirmingCancel ? (
             <button
@@ -125,7 +128,7 @@ export default function ManageAppointment({
               onClick={() => setConfirmingCancel(true)}
               className="flex-1 rounded-md border border-red-300 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
             >
-              Cancel appointment
+              {dict.manage.cancelAppointment}
             </button>
           ) : (
             <button
@@ -134,7 +137,7 @@ export default function ManageAppointment({
               onClick={handleCancel}
               className="flex-1 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
             >
-              {busy ? "Cancelling…" : "Confirm cancel"}
+              {busy ? dict.manage.cancelling : dict.manage.confirmCancel}
             </button>
           )}
         </div>
@@ -144,14 +147,14 @@ export default function ManageAppointment({
         <div className="mt-6">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
-              Pick a new time
+              {dict.manage.pickNewTime}
             </h2>
             <button
               type="button"
               onClick={() => setMode("view")}
               className="text-sm text-gray-500 hover:text-gray-700"
             >
-              Cancel
+              {dict.common.cancel}
             </button>
           </div>
           <div className="grid gap-6 md:grid-cols-2">
@@ -167,12 +170,12 @@ export default function ManageAppointment({
             <div>
               {selectedDate ? (
                 busy ? (
-                  <p className="text-sm text-gray-500">Rescheduling…</p>
+                  <p className="text-sm text-gray-500">{dict.manage.rescheduling}</p>
                 ) : (
                   <SlotList slots={availability[selectedDate] ?? []} onSelectSlot={handlePickSlot} />
                 )
               ) : (
-                <p className="text-sm text-gray-500">Select a day on the calendar.</p>
+                <p className="text-sm text-gray-500">{dict.manage.selectDayPrompt}</p>
               )}
             </div>
           </div>

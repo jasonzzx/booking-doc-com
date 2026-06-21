@@ -2,15 +2,17 @@
 
 import { useActionState } from "react";
 import { loginAction } from "./actions";
+import { useI18n } from "@/lib/i18n/context";
 
 export default function LoginForm() {
+  const { dict } = useI18n();
   const [state, formAction, isPending] = useActionState(loginAction, {});
 
   return (
     <form action={formAction} className="space-y-4">
       <div>
         <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-          Email
+          {dict.login.emailLabel}
         </label>
         <input
           id="email"
@@ -22,7 +24,7 @@ export default function LoginForm() {
       </div>
       <div>
         <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-          Password
+          {dict.login.passwordLabel}
         </label>
         <input
           id="password"
@@ -38,7 +40,7 @@ export default function LoginForm() {
         disabled={isPending}
         className="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
       >
-        {isPending ? "Signing in…" : "Sign in"}
+        {isPending ? dict.login.signingIn : dict.login.signIn}
       </button>
     </form>
   );

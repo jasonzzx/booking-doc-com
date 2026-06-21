@@ -5,6 +5,7 @@ import Link from "next/link";
 import { addDays, format, parseISO } from "date-fns";
 import { cancelMyAppointment, type DoctorDayView } from "@/lib/actions/doctor";
 import { formatClinicTime, minutesOfDayInClinicTz } from "@/lib/format";
+import { useDateFnsLocale, useI18n } from "@/lib/i18n/context";
 
 function shiftDate(date: string, days: number): string {
   return format(addDays(parseISO(`${date}T00:00:00`), days), "yyyy-MM-dd");
@@ -19,6 +20,8 @@ export default function DayTimeline({
   date: string;
   initialDayView: DoctorDayView;
 }) {
+  const { dict, locale } = useI18n();
+  const dateFnsLocale = useDateFnsLocale();
   const [dayView, setDayView] = useState(initialDayView);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -60,16 +63,16 @@ export default function DayTimeline({
           href={`/dashboard?date=${shiftDate(date, -1)}`}
           className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50"
         >
-          ‹ Previous day
+          {dict.dashboard.prevDay}
         </Link>
         <h1 className="text-lg font-semibold text-gray-900">
-          {format(parseISO(`${date}T00:00:00`), "EEEE, MMMM d, yyyy")}
+          {format(parseISO(`${date}T00:00:00`), "EEEE, MMMM d, yyyy", { locale: dateFnsLocale })}
         </h1>
         <Link
           href={`/dashboard?date=${shiftDate(date, 1)}`}
           className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50"
         >
-          Next day ›
+          {dict.dashboard.nextDay}
         </Link>
       </div>
 
@@ -83,7 +86,7 @@ export default function DayTimeline({
               className="absolute right-2 -translate-y-1/2 text-xs text-gray-400"
               style={{ top: topFor(m) }}
             >
-              {format(new Date(2000, 0, 1, Math.floor(m / 60), m % 60), "h a")}
+              {format(new Date(2000, 0, 1, Math.floor(m / 60), m % 60), "h a", { locale: dateFnsLocale })}
             </div>
           ))}
         </div>
@@ -102,7 +105,7 @@ export default function DayTimeline({
           ))}
 
           {appointments.length === 0 && (
-            <p className="absolute inset-x-0 top-4 text-center text-sm text-gray-400">No appointments today.</p>
+            <p className="absolute inset-x-0 top-4 text-center text-sm text-gray-400">{dict.dashboard.noAppointments}</p>
           )}
 
           {appointments.map((a) => {
@@ -125,7 +128,7 @@ export default function DayTimeline({
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-medium">
-                    {formatClinicTime(new Date(a.startAt))} &middot; {a.patientName}
+                    {formatClinicTime(new Date(a.startAt), locale)} &middot; {a.patientName}
                   </span>
                   {!cancelled && (
                     <button
@@ -134,7 +137,7 @@ export default function DayTimeline({
                       onClick={() => handleCancel(a.id)}
                       className="shrink-0 rounded border border-red-200 px-1.5 py-0.5 text-[10px] text-red-600 hover:bg-red-50 disabled:opacity-50"
                     >
-                      {cancellingId === a.id ? "…" : "Cancel"}
+                      {cancellingId === a.id ? dict.dashboard.cancelling : dict.dashboard.cancel}
                     </button>
                   )}
                 </div>

@@ -10,8 +10,7 @@ import {
   type AvailabilityRuleDTO,
   type AvailabilityOverrideDTO,
 } from "@/lib/actions/doctor";
-
-const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+import { useI18n } from "@/lib/i18n/context";
 
 export default function AvailabilityManager({
   initialRules,
@@ -20,15 +19,18 @@ export default function AvailabilityManager({
   initialRules: AvailabilityRuleDTO[];
   initialOverrides: AvailabilityOverrideDTO[];
 }) {
+  const { dict } = useI18n();
   const [rules, setRules] = useState(initialRules);
   const [overrides, setOverrides] = useState(initialOverrides);
 
   return (
     <div className="space-y-8">
       <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">Weekly schedule</h2>
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
+          {dict.availabilityPage.weeklySchedule}
+        </h2>
         <div className="divide-y divide-gray-100 rounded-xl border border-gray-200 bg-white">
-          {DAY_NAMES.map((name, dayOfWeek) => (
+          {dict.availabilityPage.dayNames.map((name, dayOfWeek) => (
             <DayRow
               key={dayOfWeek}
               dayOfWeek={dayOfWeek}
@@ -66,6 +68,7 @@ function DayRow({
   onToggled: (id: string, isActive: boolean) => void;
   onDeleted: (id: string) => void;
 }) {
+  const { dict } = useI18n();
   const [adding, setAdding] = useState(false);
   const [start, setStart] = useState("09:00");
   const [end, setEnd] = useState("17:00");
@@ -89,7 +92,9 @@ function DayRow({
     <div className="flex flex-wrap items-start gap-3 p-3">
       <div className="w-24 shrink-0 pt-1.5 text-sm font-medium text-gray-700">{name}</div>
       <div className="flex flex-1 flex-wrap items-center gap-2">
-        {rules.length === 0 && !adding && <span className="text-sm text-gray-400">Unavailable</span>}
+        {rules.length === 0 && !adding && (
+          <span className="text-sm text-gray-400">{dict.availabilityPage.unavailable}</span>
+        )}
         {rules.map((r) => (
           <span
             key={r.id}
@@ -107,7 +112,7 @@ function DayRow({
               }}
               className="underline"
             >
-              {r.isActive ? "pause" : "resume"}
+              {r.isActive ? dict.availabilityPage.pause : dict.availabilityPage.resume}
             </button>
             <button
               type="button"
@@ -116,7 +121,7 @@ function DayRow({
                 deleteAvailabilityRule(r.id);
               }}
               className="text-red-500"
-              aria-label="Remove"
+              aria-label={dict.common.remove}
             >
               ×
             </button>
@@ -131,7 +136,7 @@ function DayRow({
               onChange={(e) => setStart(e.target.value)}
               className="rounded-md border border-gray-300 px-2 py-1 text-xs"
             />
-            <span className="text-gray-400">to</span>
+            <span className="text-gray-400">{dict.availabilityPage.to}</span>
             <input
               type="time"
               value={end}
@@ -144,15 +149,15 @@ function DayRow({
               onClick={handleAdd}
               className="rounded-md bg-blue-600 px-2 py-1 text-xs text-white disabled:opacity-50"
             >
-              Save
+              {dict.common.save}
             </button>
             <button type="button" onClick={() => setAdding(false)} className="text-xs text-gray-500">
-              Cancel
+              {dict.common.cancel}
             </button>
           </div>
         ) : (
           <button type="button" onClick={() => setAdding(true)} className="text-xs text-blue-600 hover:underline">
-            + Add hours
+            {dict.availabilityPage.addHours}
           </button>
         )}
         {error && <span className="text-xs text-red-600">{error}</span>}
@@ -170,6 +175,7 @@ function OverridesSection({
   onCreated: (o: AvailabilityOverrideDTO) => void;
   onDeleted: (id: string) => void;
 }) {
+  const { dict } = useI18n();
   const [date, setDate] = useState("");
   const [type, setType] = useState<"blocked" | "open">("blocked");
   const [allDay, setAllDay] = useState(true);
@@ -181,7 +187,7 @@ function OverridesSection({
 
   async function handleAdd() {
     if (!date) {
-      setError("Pick a date.");
+      setError(dict.availabilityPage.pickDateError);
       return;
     }
     setBusy(true);
@@ -206,13 +212,13 @@ function OverridesSection({
   return (
     <section>
       <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
-        Date overrides (time off / extra hours)
+        {dict.availabilityPage.overridesHeading}
       </h2>
 
       <div className="rounded-xl border border-gray-200 bg-white p-4">
         <div className="flex flex-wrap items-end gap-3">
           <div>
-            <label className="block text-xs font-medium text-gray-600">Date</label>
+            <label className="block text-xs font-medium text-gray-600">{dict.availabilityPage.dateLabel}</label>
             <input
               type="date"
               value={date}
@@ -221,28 +227,28 @@ function OverridesSection({
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-600">Type</label>
+            <label className="block text-xs font-medium text-gray-600">{dict.availabilityPage.typeLabel}</label>
             <select
               value={type}
               onChange={(e) => setType(e.target.value as "blocked" | "open")}
               className="mt-1 rounded-md border border-gray-300 px-2 py-1.5 text-sm"
             >
-              <option value="blocked">Block time off</option>
-              <option value="open">Add extra hours</option>
+              <option value="blocked">{dict.availabilityPage.blockTimeOff}</option>
+              <option value="open">{dict.availabilityPage.addExtraHours}</option>
             </select>
           </div>
 
           {type === "blocked" && (
             <label className="flex items-center gap-2 pb-1.5 text-sm text-gray-600">
               <input type="checkbox" checked={allDay} onChange={(e) => setAllDay(e.target.checked)} />
-              All day
+              {dict.availabilityPage.allDay}
             </label>
           )}
 
           {(type === "open" || !allDay) && (
             <>
               <div>
-                <label className="block text-xs font-medium text-gray-600">From</label>
+                <label className="block text-xs font-medium text-gray-600">{dict.availabilityPage.fromLabel}</label>
                 <input
                   type="time"
                   value={start}
@@ -251,7 +257,7 @@ function OverridesSection({
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600">To</label>
+                <label className="block text-xs font-medium text-gray-600">{dict.availabilityPage.toLabel}</label>
                 <input
                   type="time"
                   value={end}
@@ -263,12 +269,12 @@ function OverridesSection({
           )}
 
           <div className="flex-1">
-            <label className="block text-xs font-medium text-gray-600">Reason (optional)</label>
+            <label className="block text-xs font-medium text-gray-600">{dict.availabilityPage.reasonOptional}</label>
             <input
               type="text"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="e.g. Vacation"
+              placeholder={dict.availabilityPage.reasonPlaceholder}
               className="mt-1 w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm"
             />
           </div>
@@ -279,14 +285,16 @@ function OverridesSection({
             onClick={handleAdd}
             className="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
           >
-            {busy ? "Saving…" : "Add"}
+            {busy ? dict.common.saving : dict.common.add}
           </button>
         </div>
         {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
       </div>
 
       <ul className="mt-3 space-y-2">
-        {overrides.length === 0 && <li className="text-sm text-gray-400">No upcoming overrides.</li>}
+        {overrides.length === 0 && (
+          <li className="text-sm text-gray-400">{dict.availabilityPage.noUpcomingOverrides}</li>
+        )}
         {overrides.map((o) => (
           <li
             key={o.id}
@@ -295,10 +303,12 @@ function OverridesSection({
             <span>
               <span className="font-medium text-gray-800">{o.date}</span>{" "}
               <span className={o.type === "blocked" ? "text-red-600" : "text-green-600"}>
-                {o.type === "blocked" ? "Blocked" : "Extra hours"}
+                {o.type === "blocked" ? dict.availabilityPage.blocked : dict.availabilityPage.extraHours}
               </span>{" "}
               <span className="text-gray-500">
-                {o.startTime && o.endTime ? `${o.startTime.slice(0, 5)}–${o.endTime.slice(0, 5)}` : "All day"}
+                {o.startTime && o.endTime
+                  ? `${o.startTime.slice(0, 5)}–${o.endTime.slice(0, 5)}`
+                  : dict.availabilityPage.allDay}
               </span>
               {o.reason && <span className="text-gray-400"> &middot; {o.reason}</span>}
             </span>
@@ -310,7 +320,7 @@ function OverridesSection({
               }}
               className="text-xs text-red-500 hover:underline"
             >
-              Remove
+              {dict.common.remove}
             </button>
           </li>
         ))}

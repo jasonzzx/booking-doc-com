@@ -7,8 +7,8 @@ export function minutesOfDayInClinicTz(d: Date): number {
   return zoned.getHours() * 60 + zoned.getMinutes();
 }
 
-export function formatClinicDateTime(d: Date): string {
-  return new Intl.DateTimeFormat("en-US", {
+export function formatClinicDateTime(d: Date, locale: string = "en-US"): string {
+  return new Intl.DateTimeFormat(locale, {
     timeZone: CLINIC_TIMEZONE,
     weekday: "long",
     year: "numeric",
@@ -19,8 +19,8 @@ export function formatClinicDateTime(d: Date): string {
   }).format(d);
 }
 
-export function formatClinicTime(d: Date): string {
-  return new Intl.DateTimeFormat("en-US", {
+export function formatClinicTime(d: Date, locale: string = "en-US"): string {
+  return new Intl.DateTimeFormat(locale, {
     timeZone: CLINIC_TIMEZONE,
     hour: "numeric",
     minute: "2-digit",

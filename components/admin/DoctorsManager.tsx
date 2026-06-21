@@ -8,8 +8,10 @@ import {
   resetDoctorPassword,
   type AdminDoctorDTO,
 } from "@/lib/actions/admin";
+import { useI18n } from "@/lib/i18n/context";
 
 export default function DoctorsManager({ initialDoctors }: { initialDoctors: AdminDoctorDTO[] }) {
+  const { dict } = useI18n();
   const [doctors, setDoctors] = useState(initialDoctors);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [resettingId, setResettingId] = useState<string | null>(null);
@@ -50,14 +52,14 @@ export default function DoctorsManager({ initialDoctors }: { initialDoctors: Adm
                     onClick={() => setEditingId(d.id)}
                     className="text-sm text-blue-600 hover:underline"
                   >
-                    Edit
+                    {dict.common.edit}
                   </button>
                   <button
                     type="button"
                     onClick={() => setResettingId(d.id)}
                     className="text-sm text-gray-500 hover:underline"
                   >
-                    Reset password
+                    {dict.adminPage.resetPassword}
                   </button>
                   <button
                     type="button"
@@ -67,7 +69,7 @@ export default function DoctorsManager({ initialDoctors }: { initialDoctors: Adm
                     }}
                     className="text-sm text-gray-500 hover:underline"
                   >
-                    {d.isActive ? "Deactivate" : "Activate"}
+                    {d.isActive ? dict.common.deactivate : dict.common.activate}
                   </button>
                 </div>
               </div>
@@ -75,7 +77,7 @@ export default function DoctorsManager({ initialDoctors }: { initialDoctors: Adm
             {resettingId === d.id && <ResetPasswordForm doctorId={d.id} onDone={() => setResettingId(null)} />}
           </div>
         ))}
-        {doctors.length === 0 && <p className="p-3 text-sm text-gray-400">No doctors yet.</p>}
+        {doctors.length === 0 && <p className="p-3 text-sm text-gray-400">{dict.adminPage.noDoctors}</p>}
       </div>
 
       <NewDoctorForm onCreated={(doc) => setDoctors((ds) => [...ds, doc])} />
@@ -92,6 +94,7 @@ function EditDoctorForm({
   onSaved: (d: AdminDoctorDTO) => void;
   onCancel: () => void;
 }) {
+  const { dict } = useI18n();
   const [name, setName] = useState(doctor.name);
   const [specialty, setSpecialty] = useState(doctor.specialty);
   const [error, setError] = useState<string | null>(null);
@@ -115,13 +118,13 @@ function EditDoctorForm({
         value={name}
         onChange={(e) => setName(e.target.value)}
         className="rounded-md border border-gray-300 px-2 py-1 text-sm"
-        placeholder="Name"
+        placeholder={dict.adminPage.namePlaceholder}
       />
       <input
         value={specialty}
         onChange={(e) => setSpecialty(e.target.value)}
         className="rounded-md border border-gray-300 px-2 py-1 text-sm"
-        placeholder="Specialty"
+        placeholder={dict.adminPage.specialtyPlaceholder}
       />
       <button
         type="button"
@@ -129,10 +132,10 @@ function EditDoctorForm({
         onClick={handleSave}
         className="rounded-md bg-blue-600 px-3 py-1 text-sm text-white disabled:opacity-50"
       >
-        Save
+        {dict.common.save}
       </button>
       <button type="button" onClick={onCancel} className="text-sm text-gray-500">
-        Cancel
+        {dict.common.cancel}
       </button>
       {error && <span className="text-xs text-red-600">{error}</span>}
     </div>
@@ -140,6 +143,7 @@ function EditDoctorForm({
 }
 
 function ResetPasswordForm({ doctorId, onDone }: { doctorId: string; onDone: () => void }) {
+  const { dict } = useI18n();
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -160,9 +164,9 @@ function ResetPasswordForm({ doctorId, onDone }: { doctorId: string; onDone: () 
   if (done) {
     return (
       <p className="mt-2 text-sm text-green-700">
-        Password updated.{" "}
+        {dict.adminPage.passwordUpdated}{" "}
         <button type="button" onClick={onDone} className="underline">
-          Close
+          {dict.common.close}
         </button>
       </p>
     );
@@ -174,7 +178,7 @@ function ResetPasswordForm({ doctorId, onDone }: { doctorId: string; onDone: () 
         type="password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
-        placeholder="New password (min 8 chars)"
+        placeholder={dict.adminPage.newPasswordPlaceholder}
         className="rounded-md border border-gray-300 px-2 py-1 text-sm"
       />
       <button
@@ -183,10 +187,10 @@ function ResetPasswordForm({ doctorId, onDone }: { doctorId: string; onDone: () 
         onClick={handleReset}
         className="rounded-md bg-blue-600 px-3 py-1 text-sm text-white disabled:opacity-50"
       >
-        Set password
+        {dict.adminPage.setPassword}
       </button>
       <button type="button" onClick={onDone} className="text-sm text-gray-500">
-        Cancel
+        {dict.common.cancel}
       </button>
       {error && <span className="text-xs text-red-600">{error}</span>}
     </div>
@@ -194,6 +198,7 @@ function ResetPasswordForm({ doctorId, onDone }: { doctorId: string; onDone: () 
 }
 
 function NewDoctorForm({ onCreated }: { onCreated: (d: AdminDoctorDTO) => void }) {
+  const { dict } = useI18n();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [specialty, setSpecialty] = useState("");
@@ -219,31 +224,33 @@ function NewDoctorForm({ onCreated }: { onCreated: (d: AdminDoctorDTO) => void }
 
   return (
     <div className="rounded-xl border border-dashed border-gray-300 bg-white p-4">
-      <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">Add a doctor</h2>
+      <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">
+        {dict.adminPage.addDoctor}
+      </h2>
       <div className="flex flex-wrap items-end gap-2">
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Name"
+          placeholder={dict.adminPage.namePlaceholder}
           className="rounded-md border border-gray-300 px-2 py-1.5 text-sm"
         />
         <input
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="Email"
+          placeholder={dict.adminPage.emailPlaceholder}
           type="email"
           className="rounded-md border border-gray-300 px-2 py-1.5 text-sm"
         />
         <input
           value={specialty}
           onChange={(e) => setSpecialty(e.target.value)}
-          placeholder="Specialty"
+          placeholder={dict.adminPage.specialtyPlaceholder}
           className="rounded-md border border-gray-300 px-2 py-1.5 text-sm"
         />
         <input
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="Temporary password"
+          placeholder={dict.adminPage.tempPasswordPlaceholder}
           type="password"
           className="rounded-md border border-gray-300 px-2 py-1.5 text-sm"
         />
@@ -253,7 +260,7 @@ function NewDoctorForm({ onCreated }: { onCreated: (d: AdminDoctorDTO) => void }
           onClick={handleCreate}
           className="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
         >
-          {busy ? "Adding…" : "Add doctor"}
+          {busy ? dict.common.adding : dict.adminPage.addDoctor}
         </button>
       </div>
       {error && <p className="mt-2 text-sm text-red-600">{error}</p>}

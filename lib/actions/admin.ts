@@ -6,6 +6,7 @@ import { getDb } from "@/lib/db";
 import { doctors, users } from "@/lib/db/schema";
 import { isValidEmail } from "@/lib/server-utils";
 import { requireAdmin } from "@/lib/actions/guards";
+import { getDictionary } from "@/lib/i18n/get-locale";
 
 export interface AdminDoctorDTO {
   id: string;
@@ -37,18 +38,19 @@ export async function createDoctor(input: {
   specialty: string;
 }): Promise<{ success: true; doctor: AdminDoctorDTO } | { success: false; error: string }> {
   await requireAdmin();
+  const { dict } = await getDictionary();
   const name = input.name.trim();
   const email = input.email.trim().toLowerCase();
   const specialty = input.specialty.trim();
 
-  if (!name) return { success: false, error: "Name is required." };
-  if (!isValidEmail(email)) return { success: false, error: "That email address doesn't look valid." };
-  if (!specialty) return { success: false, error: "Specialty is required." };
-  if (input.password.length < 8) return { success: false, error: "Password must be at least 8 characters." };
+  if (!name) return { success: false, error: dict.errors.nameRequired };
+  if (!isValidEmail(email)) return { success: false, error: dict.errors.invalidEmail };
+  if (!specialty) return { success: false, error: dict.errors.specialtyRequired };
+  if (input.password.length < 8) return { success: false, error: dict.errors.passwordTooShort };
 
   const db = getDb();
   const existing = await db.query.users.findFirst({ where: eq(users.email, email) });
-  if (existing) return { success: false, error: "A user with that email already exists." };
+  if (existing) return { success: false, error: dict.errors.emailAlreadyExists };
 
   const passwordHash = await bcrypt.hash(input.password, 10);
   const [user] = await db.insert(users).values({ email, passwordHash, role: "doctor", name }).returning();
@@ -72,14 +74,15 @@ export async function updateDoctor(
   input: { name: string; specialty: string },
 ): Promise<{ success: true } | { success: false; error: string }> {
   await requireAdmin();
+  const { dict } = await getDictionary();
   const name = input.name.trim();
   const specialty = input.specialty.trim();
-  if (!name) return { success: false, error: "Name is required." };
-  if (!specialty) return { success: false, error: "Specialty is required." };
+  if (!name) return { success: false, error: dict.errors.nameRequired };
+  if (!specialty) return { success: false, error: dict.errors.specialtyRequired };
 
   const db = getDb();
   const doctor = await db.query.doctors.findFirst({ where: eq(doctors.id, doctorId) });
-  if (!doctor) return { success: false, error: "Doctor not found." };
+  if (!doctor) return { success: false, error: dict.errors.doctorNotFound };
 
   await db.update(doctors).set({ specialty, updatedAt: new Date() }).where(eq(doctors.id, doctorId));
   await db.update(users).set({ name, updatedAt: new Date() }).where(eq(users.id, doctor.userId));
@@ -98,11 +101,12 @@ export async function resetDoctorPassword(
   newPassword: string,
 ): Promise<{ success: true } | { success: false; error: string }> {
   await requireAdmin();
-  if (newPassword.length < 8) return { success: false, error: "Password must be at least 8 characters." };
+  const { dict } = await getDictionary();
+  if (newPassword.length < 8) return { success: false, error: dict.errors.passwordTooShort };
 
   const db = getDb();
   const doctor = await db.query.doctors.findFirst({ where: eq(doctors.id, doctorId) });
-  if (!doctor) return { success: false, error: "Doctor not found." };
+  if (!doctor) return { success: false, error: dict.errors.doctorNotFound };
 
   const passwordHash = await bcrypt.hash(newPassword, 10);
   await db.update(users).set({ passwordHash, updatedAt: new Date() }).where(eq(users.id, doctor.userId));

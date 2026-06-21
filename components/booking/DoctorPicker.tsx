@@ -1,6 +1,7 @@
 "use client";
 
 import type { DoctorSummary } from "@/lib/actions/booking";
+import { useI18n } from "@/lib/i18n/context";
 
 function initials(name: string): string {
   return name
@@ -21,8 +22,10 @@ export default function DoctorPicker({
   selectedId: string | null;
   onSelect: (id: string) => void;
 }) {
+  const { dict } = useI18n();
+
   if (doctors.length === 0) {
-    return <p className="text-sm text-gray-500">No doctors are available for booking right now.</p>;
+    return <p className="text-sm text-gray-500">{dict.booking.noDoctors}</p>;
   }
 
   return (

@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { createService, updateService, toggleService, type ServiceDTO } from "@/lib/actions/doctor";
+import { useI18n } from "@/lib/i18n/context";
 
 export default function ServicesManager({ initialServices }: { initialServices: ServiceDTO[] }) {
+  const { dict } = useI18n();
   const [services, setServices] = useState(initialServices);
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -32,7 +34,9 @@ export default function ServicesManager({ initialServices }: { initialServices: 
                   >
                     {s.name}
                   </span>
-                  <span className="text-xs text-gray-400">{s.durationMinutes} min</span>
+                  <span className="text-xs text-gray-400">
+                    {s.durationMinutes} {dict.booking.serviceMin}
+                  </span>
                 </div>
                 {s.description && <p className="text-sm text-gray-500">{s.description}</p>}
               </div>
@@ -42,7 +46,7 @@ export default function ServicesManager({ initialServices }: { initialServices: 
                   onClick={() => setEditingId(s.id)}
                   className="text-sm text-blue-600 hover:underline"
                 >
-                  Edit
+                  {dict.common.edit}
                 </button>
                 <button
                   type="button"
@@ -52,13 +56,13 @@ export default function ServicesManager({ initialServices }: { initialServices: 
                   }}
                   className="text-sm text-gray-500 hover:underline"
                 >
-                  {s.isActive ? "Deactivate" : "Activate"}
+                  {s.isActive ? dict.common.deactivate : dict.common.activate}
                 </button>
               </div>
             </div>
           ),
         )}
-        {services.length === 0 && <p className="p-3 text-sm text-gray-400">No services yet.</p>}
+        {services.length === 0 && <p className="p-3 text-sm text-gray-400">{dict.servicesPage.noServices}</p>}
       </div>
 
       <NewServiceForm onCreated={(svc) => setServices((ss) => [...ss, svc])} />
@@ -75,6 +79,7 @@ function ServiceForm({
   onSaved: (s: ServiceDTO) => void;
   onCancel: () => void;
 }) {
+  const { dict } = useI18n();
   const [name, setName] = useState(initial.name);
   const [duration, setDuration] = useState(String(initial.durationMinutes));
   const [description, setDescription] = useState(initial.description ?? "");
@@ -104,7 +109,7 @@ function ServiceForm({
         value={name}
         onChange={(e) => setName(e.target.value)}
         className="rounded-md border border-gray-300 px-2 py-1 text-sm"
-        placeholder="Name"
+        placeholder={dict.servicesPage.namePlaceholder}
       />
       <input
         type="number"
@@ -112,13 +117,13 @@ function ServiceForm({
         value={duration}
         onChange={(e) => setDuration(e.target.value)}
         className="w-20 rounded-md border border-gray-300 px-2 py-1 text-sm"
-        placeholder="Minutes"
+        placeholder={dict.servicesPage.minutesPlaceholder}
       />
       <input
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         className="flex-1 rounded-md border border-gray-300 px-2 py-1 text-sm"
-        placeholder="Description (optional)"
+        placeholder={dict.common.descriptionOptional}
       />
       <button
         type="button"
@@ -126,10 +131,10 @@ function ServiceForm({
         onClick={handleSave}
         className="rounded-md bg-blue-600 px-3 py-1 text-sm text-white disabled:opacity-50"
       >
-        Save
+        {dict.common.save}
       </button>
       <button type="button" onClick={onCancel} className="text-sm text-gray-500">
-        Cancel
+        {dict.common.cancel}
       </button>
       {error && <span className="text-xs text-red-600">{error}</span>}
     </div>
@@ -137,6 +142,7 @@ function ServiceForm({
 }
 
 function NewServiceForm({ onCreated }: { onCreated: (s: ServiceDTO) => void }) {
+  const { dict } = useI18n();
   const [name, setName] = useState("");
   const [duration, setDuration] = useState("30");
   const [description, setDescription] = useState("");
@@ -160,12 +166,14 @@ function NewServiceForm({ onCreated }: { onCreated: (s: ServiceDTO) => void }) {
 
   return (
     <div className="rounded-xl border border-dashed border-gray-300 bg-white p-4">
-      <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">Add a service</h2>
+      <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">
+        {dict.servicesPage.addService}
+      </h2>
       <div className="flex flex-wrap items-end gap-2">
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="e.g. Follow-up"
+          placeholder={dict.servicesPage.followUpPlaceholder}
           className="rounded-md border border-gray-300 px-2 py-1.5 text-sm"
         />
         <input
@@ -174,12 +182,12 @@ function NewServiceForm({ onCreated }: { onCreated: (s: ServiceDTO) => void }) {
           value={duration}
           onChange={(e) => setDuration(e.target.value)}
           className="w-24 rounded-md border border-gray-300 px-2 py-1.5 text-sm"
-          placeholder="Minutes"
+          placeholder={dict.servicesPage.minutesPlaceholder}
         />
         <input
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Description (optional)"
+          placeholder={dict.common.descriptionOptional}
           className="flex-1 rounded-md border border-gray-300 px-2 py-1.5 text-sm"
         />
         <button
@@ -188,7 +196,7 @@ function NewServiceForm({ onCreated }: { onCreated: (s: ServiceDTO) => void }) {
           onClick={handleCreate}
           className="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
         >
-          {busy ? "Adding…" : "Add"}
+          {busy ? dict.common.adding : dict.common.add}
         </button>
       </div>
       {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
