@@ -2,7 +2,7 @@ import type { Dictionary } from "./en";
 
 const zhCN = {
   meta: {
-    title: "DocBook - 预约挂号",
+    title: "BookingDocCom - 预约挂号",
     description: "预约和管理医生问诊。",
   },
   common: {
@@ -23,7 +23,7 @@ const zhCN = {
     descriptionOptional: "描述（选填）",
   },
   header: {
-    brand: "DocBook",
+    brand: "BookingDocCom",
     loginLink: "医生 / 管理员登录",
     schedule: "排班",
     availability: "可预约时间",

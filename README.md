@@ -1,4 +1,4 @@
-# DocBook - doctor appointment booking
+# BookingDocCom - doctor appointment booking
 
 A small booking app for a clinic with multiple doctors. Patients pick a doctor and a service, see a month calendar of bookable times, and book with just name/phone/email. Doctors sign in to see a day timeline of their bookings and manage their availability and services. An admin can create/manage doctor accounts.
 

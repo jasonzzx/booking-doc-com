@@ -1,6 +1,6 @@
 const en = {
   meta: {
-    title: "DocBook - Appointment Booking",
+    title: "BookingDocCom - Appointment Booking",
     description: "Book and manage doctor appointments.",
   },
   common: {
@@ -21,7 +21,7 @@ const en = {
     descriptionOptional: "Description (optional)",
   },
   header: {
-    brand: "DocBook",
+    brand: "BookingDocCom",
     loginLink: "Doctor / Admin login",
     schedule: "Schedule",
     availability: "Availability",
